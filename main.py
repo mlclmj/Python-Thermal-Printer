@@ -29,14 +29,6 @@ dailyFlag    = False # Set after daily trigger occurs
 lastId       = '1'   # State information passed to/from interval script
 printer      = Adafruit_Thermal("/dev/serial0", 19200, timeout=5)
 
-
-# Called when button is briefly tapped.  Invokes time/temperature script.
-def tap():
-  GPIO.output(ledPin, GPIO.HIGH)  # LED on while working
-  subprocess.call(["python", "timetemp.py"])
-  GPIO.output(ledPin, GPIO.LOW)
-
-
 # Called when button is held down.  Prints image, invokes shutdown process.
 def hold():
   GPIO.output(ledPin, GPIO.HIGH)
@@ -55,16 +47,6 @@ def interval():
     stdout=subprocess.PIPE)
   GPIO.output(ledPin, GPIO.LOW)
   return p.communicate()[0] # Script pipes back lastId, returned to main
-
-
-# Called once per day (6:30am by default).
-# Invokes weather forecast and sudoku-gfx scripts.
-def daily():
-  GPIO.output(ledPin, GPIO.HIGH)
-  subprocess.call(["python", "forecast.py"])
-  subprocess.call(["python", "sudoku-gfx.py"])
-  GPIO.output(ledPin, GPIO.LOW)
-
 
 # Initialization
 
@@ -130,7 +112,6 @@ while(True):
       # Yes.  Debounced press or release...
       if buttonState == True:       # Button released?
         if tapEnable == True:       # Ignore if prior hold()
-          tap()                     # Tap triggered (button released)
           tapEnable  = False        # Disable tap and hold
           holdEnable = False
       else:                         # Button pressed
@@ -146,16 +127,6 @@ while(True):
   else:
     GPIO.output(ledPin, GPIO.LOW)
 
-  # Once per day (currently set for 6:30am local time, or when script
-  # is first run, if after 6:30am), run forecast and sudoku scripts.
-  l = time.localtime()
-  if (60 * l.tm_hour + l.tm_min) > (60 * 6 + 30):
-    if dailyFlag == False:
-      daily()
-      dailyFlag = True
-  else:
-    dailyFlag = False  # Reset daily trigger
-
   # Every 30 seconds, run Twitter scripts.  'lastId' is passed around
   # to preserve state between invocations.  Probably simpler to do an
   # import thing.
@@ -164,4 +135,3 @@ while(True):
     result = interval()
     if result is not None:
       lastId = result.rstrip('\r\n')
-
