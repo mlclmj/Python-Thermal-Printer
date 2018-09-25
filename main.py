@@ -32,8 +32,6 @@ printer      = Adafruit_Thermal("/dev/serial0", 19200, timeout=5)
 # Called when button is held down.  Prints image, invokes shutdown process.
 def hold():
   GPIO.output(ledPin, GPIO.HIGH)
-  printer.printImage(Image.open('gfx/goodbye.png'), True)
-  printer.feed(3)
   subprocess.call("sync")
   subprocess.call(["shutdown", "-h", "now"])
   GPIO.output(ledPin, GPIO.LOW)
@@ -79,9 +77,6 @@ except:
 	printer.feed(3)
 	exit(0)
 
-# Print greeting image
-printer.printImage(Image.open('gfx/hello.png'), True)
-printer.feed(3)
 GPIO.output(ledPin, GPIO.LOW)
 
 # Poll initial button state and time
